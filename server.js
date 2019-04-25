@@ -1,9 +1,21 @@
-const http = require('http');
+const WebSocket = require('ws');
 
-const server = http.createServer((req, res) => {
-  res.end('Hello');
-});
+const CLOSE = '.exit';
 
-server.listen(8080, () => {
-  console.log('Server has been started');
+const wss = new WebSocket.Server({ port: 3000 });
+
+wss.on('connection', (ws) => {
+  ws.on('message', (rawData) => {
+    const data = JSON.parse(rawData);
+
+    if (data.message === CLOSE) {
+      ws.close();
+    }
+
+    wss.clients.forEach(client => {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send(rawData);
+      }
+    });
+  });
 });

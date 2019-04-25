@@ -1,67 +1,107 @@
 const app = (root) => {
   // DOM elements
+  const chatEl = root.querySelector('.Chat');
   const statusEl = root.querySelector('.Status');
   const messagesEl = root.querySelector('.Messages');
+  const signInFormEl = root.querySelector('.SignIn');
+  const signInInputEl = root.querySelector('.SignInInput');
   const messagesFormEl = root.querySelector('.MessagesForm');
   const messagesInputEl = root.querySelector('.MessagesFormInput');
 
-  const socket = new WebSocket('ws://localhost:3000');
+  const token = +new Date();
+
+  const state = {
+    username: 'Anonimus',
+  };
 
   // helpers
-  const renderNewMessage = (newMessage) => {
+  const renderNewMessage = (messageData) => {
+    console.log('messageData', messageData);
+    const { message, username, token: messageUserToken } = messageData;
+    const isMyMessage = messageUserToken === token;
+
     const newMessageEl = document.createElement('div');
-    const newMessageEl.innerText = newMessage;
+
+    newMessageEl.className = isMyMessage ? 'MessagesMessage MyMessage' : 'MessagesMessage';
+    newMessageEl.innerHTML = `<span>${isMyMessage ? 'Me' : username}:</span> ${message}`;
     messagesEl.append(newMessageEl);
   };
 
   const renderStatus = (newStatus) => {
-    statusEl.innerText = newStatus;
+    statusEl.innerText = `${newStatus} : ${state.username}`;
   };
 
   const showNotification = (notification) => {
     const NotificationSystemEl = document.createElement('div');
     NotificationSystemEl.innerText = notification;
-    const NotificationSystemEl.className = 'NotificationSystem';
+    NotificationSystemEl.className = 'NotificationSystem';
     root.append(NotificationSystemEl);
 
     setTimeout(() => {
-      NotificationSystemEl.classList.add('isOpen');
-
+      NotificationSystemEl.classList.add('animated');
       setTimeout(() => {
         root.removeChild(NotificationSystemEl);
       }, 1500);
     }, 0);
   };
 
+  const runChat = () => {
+    const socket = new WebSocket('ws://localhost:3000');
+
+    signInFormEl.classList.remove('Visible');
+    chatEl.classList.add('Visible');
+
+    socket.onopen = () => {
+      renderStatus('ONLINE');
+      showNotification('You are connected successfully');
+    };
+
+    socket.onclose = (event) => {
+      renderStatus('OFFLINE');
+
+      if (!event.wasClean) {
+        showNotification('Network error, try to reload app');
+        return;
+      }
+
+      showNotification('You are disconnected successfully');
+    };
+
+    socket.onerror = (error) => {
+      showNotification(`Something went wrong: ${error.message}`);
+    };
+
+    socket.onmessage = ({ data }) => {
+      renderNewMessage(JSON.parse(data));
+    };
+
+    messagesFormEl.addEventListener('submit', (event) => {
+      event.preventDefault();
+      const { value } = messagesInputEl;
+
+      if (!value) return;
+
+      const data = {
+        token,
+        username: state.username,
+        message: messagesInputEl.value,
+      };
+
+      socket.send(JSON.stringify(data));
+      messagesInputEl.value = '';
+      messagesInputEl.focus();
+    });
+  };
+
   // listeners
-  socket.onopen = () => {
-    renderStatus('ONLINE');
-    showNotification('You are connected successfully');
-  };
-
-  socket.onclose = (event) => {
-    renderStatus('OFFLINE');
-
-    if (!event.wasClean) {
-      showNotification('Network error, try to reload app');
-      return;
-    }
-
-    showNotification('You are disconnected successfully');
-  };
-
-  socket.onerror = (error) => {
-    showNotification(`Something went wrong: ${error.message}`);
-  };
-
-  socket.onmessage = ({ data: newMessage }) => {
-    renderNewMessage(newMessage);
-  };
-
-  messagesFormEl.addEventListener('submit', (event) => {
+  signInFormEl.addEventListener('submit', (event) => {
     event.preventDefault();
-    socket.send(messagesInputEl.value);
-    messagesInputEl.value = '';
+    const { value } = signInInputEl;
+
+    if (!value) return;
+
+    state.username = value;
+    runChat();
   });
 };
 
