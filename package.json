@@ -1,15 +1,31 @@
 {
-  "name": "simple-chat",
-  "version": "0.1.0",
-  "description": "simple chat",
+  "name": "node-js-getting-started",
+  "version": "0.3.0",
+  "description": "A sample Node.js app using Express 4",
+  "engines": {
+    "node": "10.x"
+  },
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node index.js",
+    "test": "node test.js"
   },
-  "author": "Me",
-  "license": "ISC",
   "dependencies": {
-    "express": "^4.16.4",
+    "express": "^4.15.2",
     "ws": "^6.2.1"
-  }
+  },
+  "devDependencies": {
+    "request": "^2.81.0",
+    "tape": "^4.7.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/heroku/node-js-getting-started"
+  },
+  "keywords": [
+    "node",
+    "heroku",
+    "express"
+  ],
+  "license": "MIT"
 }
