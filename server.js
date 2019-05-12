@@ -2,7 +2,7 @@ const WebSocket = require('ws');
 
 const CLOSE = '.exit';
 
-const wss = new WebSocket.Server({ port: 3000 });
+const wss = new WebSocket.Server({ port: 80 });
 
 wss.on('connection', (ws) => {
   ws.on('message', (rawData) => {

@@ -46,7 +46,7 @@ const app = (root) => {
   };
 
   const runChat = () => {
-    const socket = new WebSocket('ws://localhost:3000');
+    const socket = new WebSocket('ws://localhost:80');
 
     signInFormEl.classList.remove('Visible');
     chatEl.classList.add('Visible');
